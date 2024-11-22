@@ -22,6 +22,7 @@ import {
 } from '../components/ui/dialog';
 
 import { useNavigate } from 'react-router-dom';
+import mammoth from 'mammoth';
 
 export function FileUpload() {
     const navigate = useNavigate();
@@ -56,25 +57,30 @@ export function FileUpload() {
 
           const reader = new FileReader();
 
-          reader.onload = (event) => {
-            if (event.target && typeof event.target.result === 'string') {
-              text = event.target.result;
-              setParsedText(text);
-              console.log(text);
-              localStorage.setItem('uploadedFileText', text);
-              setIsModalOpen(true);
+
+          reader.onload = async (event) => {
+            if (event.target && event.target.result instanceof ArrayBuffer) {
+              try {
+                const result = await mammoth.extractRawText({ arrayBuffer: event.target.result });
+                setParsedText(result.value);
+                console.log(result.value);
+                localStorage.setItem('uploadedDocxText', result.value);
+                setIsModalOpen(true);
+                setIsUploading(false);
+                setProgress(100);
+              } catch (error) {
+                console.error('Error parsing DOCX file:', error);
+              }
             }
-            setIsUploading(false);
-            setProgress(100);
           };
+
 
           reader.onerror = () => {
             console.error('Error reading file');
             setIsUploading(false);
           };
 
-          reader.readAsText(file);
-        
+          reader.readAsArrayBuffer(file);
 
         if (text) {
           setParsedText(text);
