@@ -21,9 +21,11 @@ import {
   DialogTitle,
 } from '../components/ui/dialog';
 
-import {pdfToText} from 'pdf-ts';
+import { useNavigate } from 'react-router-dom';
 
 export function FileUpload() {
+    const navigate = useNavigate();
+
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -37,9 +39,11 @@ export function FileUpload() {
     }
   };
 
-  const extractTextFromPDF = async (file: File) => {
-    const pdf = await fs.readFile(file);
-    const text = await pdfToText(pdf);
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsModalOpen(open);
+    if (!open) {
+      navigate('/console');
+    }
   };
 
   const handleUpload = async () => {
@@ -49,9 +53,7 @@ export function FileUpload() {
 
       try {
         let text = '';
-        if (file.type === 'application/pdf') {
-          text = await extractTextFromPDF(file);
-        } else {
+
           const reader = new FileReader();
 
           reader.onload = (event) => {
@@ -72,7 +74,7 @@ export function FileUpload() {
           };
 
           reader.readAsText(file);
-        }
+        
 
         if (text) {
           setParsedText(text);
@@ -88,11 +90,15 @@ export function FileUpload() {
   };
 
   return (
+    <div>
+    <h1 className="text-6xl font-bold mt-4 mb-8 text-center text-gray-800">Vostra</h1>
+    <h2 className="text-2xl font-bold mt-8 mb-8 text-center text-gray-800">AI - Career Coach</h2>
+    <h1 className="text-2xl font-bold mt-8 mb-8 text-center text-gray-800">Upload Your Resume Below, and let the magic happen !!!</h1>
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <FileUp className="h-6 w-6" />
-          <span>File Upload</span>
+          <span>Resume Upload</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -101,7 +107,7 @@ export function FileUpload() {
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <Upload className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
               <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Choose PDF files only!</p>
             </div>
             <Input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} />
           </label>
@@ -116,11 +122,11 @@ export function FileUpload() {
         )}
       </CardContent>
       <CardFooter>
-        <Button onClick={handleUpload} disabled={!file || isUploading} className="w-full">
+        <Button onClick={handleUpload} disabled={!file || isUploading} className="w-full bg-black text-white">
           <Upload className="mr-2 h-4 w-4" /> Upload File
         </Button>
       </CardFooter>
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -132,5 +138,6 @@ export function FileUpload() {
         </DialogContent>
       </Dialog>
     </Card>
+    </div>
   );
 }
